@@ -3,50 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Liste de Livres</title>
-  <!-- Bootstrap CSS -->
+  <title>Liste de Livres PDF</title>
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
   <div class="container mt-5">
-    <h1 class="text-center mb-4">Liste de Livres</h1>
-    <div class="row" id="book-list">
-      <!-- Les cartes de livres seront insérées ici -->
+    <h1 class="text-center mb-4">Liste de Livres PDF</h1>
+    <button id="select-folder" class="btn btn-primary mb-4">Sélectionner un Dossier de PDF</button>
+    <div class="row" id="pdf-list">
+      <!-- Les cartes de PDF seront insérées ici -->
     </div>
   </div>
 
-  <!-- Bootstrap JS, Popper.js, and jQuery -->
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-  <!-- Script pour générer dynamiquement les cartes de livres -->
   <script>
-    const books = [
-      { title: 'Livre 1', author: 'Auteur 1', description: 'Description du livre 1' },
-      { title: 'Livre 2', author: 'Auteur 2', description: 'Description du livre 2' },
-      { title: 'Livre 3', author: 'Auteur 3', description: 'Description du livre 3' },
-      { title: 'Livre 4', author: 'Auteur 4', description: 'Description du livre 4' },
-      { title: 'Livre 5', author: 'Auteur 5', description: 'Description du livre 5' },
-      { title: 'Livre 6', author: 'Auteur 6', description: 'Description du livre 6' },
-      // Ajoutez autant de livres que nécessaire
-    ];
+    document.getElementById('select-folder').addEventListener('click', async () => {
+      const folderPath = await window.electronAPI.selectPdfFolder();
+      if (folderPath) {
+        const pdfList = document.getElementById('pdf-list');
+        pdfList.innerHTML = '';
 
-    const bookList = document.getElementById('book-list');
+        const pdfFiles = await window.electronAPI.getPdfFiles(folderPath);
+        pdfFiles.forEach(async file => {
+          const filePath = `${folderPath}/${file}`;
+          const pdfInfo = await window.electronAPI.getPdfInfo(filePath);
 
-    books.forEach(book => {
-      const bookCard = document.createElement('div');
-      bookCard.className = 'col-sm-6 col-md-4 col-lg-3 mb-4';
-      bookCard.innerHTML = `
-        <div class="card h-100">
-          <div class="card-body">
-            <h5 class="card-title">${book.title}</h5>
-            <h6 class="card-subtitle mb-2 text-muted">${book.author}</h6>
-            <p class="card-text">${book.description}</p>
-          </div>
-        </div>
-      `;
-      bookList.appendChild(bookCard);
+          const pdfCard = document.createElement('div');
+          pdfCard.className = 'col-sm-6 col-md-4 col-lg-3 mb-4';
+          pdfCard.innerHTML = `
+            <div class="card h-100">
+              <div class="card-body">
+                <h5 class="card-title">${pdfInfo.title || 'Titre inconnu'}</h5>
+                <p class="card-text">Pages: ${pdfInfo.pages}</p>
+                <p class="card-text">Extrait: ${pdfInfo.text}</p>
+              </div>
+            </div>
+          `;
+          pdfList.appendChild(pdfCard);
+        });
+      }
     });
   </script>
 </body>
